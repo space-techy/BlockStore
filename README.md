@@ -1,8 +1,8 @@
-# Blockchain-Based Decentralized Storage Design for Data Confidence Over Cloud-Native Edge Infrastructure
+# Blockchain-Based Decentralized Storage
 
   
 
-This project demonstrates a multi-step approach to securely store encrypted files, link their metadata on a private blockchain, and manage additional properties (e.g., attention/confidence labels) via a MongoDB-based service. It also includes a simple React front-end for uploading and retrieving files under specific rules. The project is based on [Blockchain-Based Decentralized Storage Design for Data Confidence Over Cloud-Native Edge Infrastructure](#%20Blockchain-Based%20Decentralized%20Storage%20Design%20for%20Data%20Confidence%20Over%20Cloud-Native%20Edge%20Infrastructure) by [Hannie Zang](https://ieeexplore.ieee.org/author/37086156347); [Ho Kim](https://ieeexplore.ieee.org/author/37089620075); [Jongwon Kim](https://ieeexplore.ieee.org/author/37281211300) et al.
+This project demonstrates a multi-step approach to securely store encrypted files, link their metadata on a private blockchain with mongodb database. It also includes a simple React front-end for uploading and retrieving files under specific rules.
 
   
 
