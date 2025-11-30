@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import connectDB from './db.js'
 import FileMetadata from './models/FileMetadata.js'
+import FileLedger from './models/FileLedger.js'
 
 const app = express()
 app.use(cors())
@@ -11,7 +12,13 @@ connectDB()
 
 app.post('/metadata', async (req, res) => {
   try {
-    const { fileId, accessRights, dataLocation, attention, confidence, label, ownerAddress, isPublic, originalFilename } = req.body
+    const { fileId, accessRights, dataLocation, attention, confidence, label, ownerAddress, receiverAddress, isPublic, originalFilename } = req.body
+    
+    const normalizedOwnerAddress = ownerAddress ? ownerAddress.toLowerCase() : ''
+    const normalizedReceiverAddress = receiverAddress ? receiverAddress.toLowerCase() : null
+    const isPublicFlag = isPublic === true || isPublic === 'true'
+    
+    // Update or create FileMetadata
     const updated = await FileMetadata.findOneAndUpdate(
       { fileId },
       { 
@@ -20,12 +27,30 @@ app.post('/metadata', async (req, res) => {
         attention, 
         confidence,
         label: label || '',
-        ownerAddress: ownerAddress || '',
-        isPublic: isPublic === true || isPublic === 'true',
+        ownerAddress: normalizedOwnerAddress,
+        receiverAddress: normalizedReceiverAddress,
+        isPublic: isPublicFlag,
         originalFilename: originalFilename || fileId
       },
       { upsert: true, new: true }
     )
+
+    // Update or create ledger entry
+    await FileLedger.findOneAndUpdate(
+      { fileId },
+      {
+        fileId,
+        ownerAddress: normalizedOwnerAddress,
+        receiverAddress: normalizedReceiverAddress,
+        isPublic: isPublicFlag,
+        originalFilename: originalFilename || fileId,
+        label: label || '',
+        dataLocation: dataLocation,
+        uploadedAt: new Date()
+      },
+      { upsert: true, new: true }
+    )
+
     return res.status(200).json(updated)
   } catch (err) {
     return res.status(500).json({ error: err.message })
@@ -56,7 +81,27 @@ app.delete('/metadata/:fileId', async (req, res) => {
   }
 })
 
-// Get all files by owner address (user's own files)
+// Get all files where user is sender OR receiver (from ledger)
+app.get('/metadata/user/:address', async (req, res) => {
+  try {
+    const { address } = req.params
+    const normalizedAddress = address.toLowerCase()
+    
+    // Get files from ledger where user is sender OR receiver
+    const ledgerFiles = await FileLedger.find({
+      $or: [
+        { ownerAddress: normalizedAddress },
+        { receiverAddress: normalizedAddress }
+      ]
+    }).sort({ uploadedAt: -1 })
+    
+    return res.status(200).json(ledgerFiles)
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+})
+
+// Get all files by owner address (user's own files - legacy endpoint, kept for compatibility)
 app.get('/metadata/owner/:address', async (req, res) => {
   try {
     const { address } = req.params
@@ -67,7 +112,19 @@ app.get('/metadata/owner/:address', async (req, res) => {
   }
 })
 
-// Get public files by address (anyone can access)
+// Get ALL public files from ledger (no address required)
+app.get('/metadata/public/all', async (req, res) => {
+  try {
+    const files = await FileLedger.find({ 
+      isPublic: true 
+    }).sort({ uploadedAt: -1 })
+    return res.status(200).json(files)
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+})
+
+// Get public files by address (anyone can access - legacy endpoint, kept for compatibility)
 app.get('/metadata/public/:address', async (req, res) => {
   try {
     const { address } = req.params

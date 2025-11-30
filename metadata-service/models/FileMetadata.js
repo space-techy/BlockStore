@@ -3,7 +3,8 @@ import mongoose from 'mongoose'
 const FileMetadataSchema = new mongoose.Schema({
   fileId: { type: String, required: true, unique: true },
   dataLocation: { type: String, required: true },
-  ownerAddress: { type: String, required: true, index: true }, // Wallet address of the file owner
+  ownerAddress: { type: String, required: true, index: true }, // Wallet address of the file owner (sender)
+  receiverAddress: { type: String, default: null, index: true }, // Receiver address (if file is sent to someone)
   isPublic: { type: Boolean, default: false, index: true }, // Public files can be accessed by anyone with the address
   accessRights: { type: String, default: 'private' },
   attention: { type: String, default: '' },

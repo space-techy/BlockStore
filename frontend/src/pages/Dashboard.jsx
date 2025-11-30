@@ -24,7 +24,8 @@ function Dashboard() {
 
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:3000/files/owner/${account}`)
+      // Use the new user endpoint that returns files where user is sender OR receiver
+      const response = await fetch(`http://localhost:3000/files/user/${account}`)
       if (!response.ok) {
         throw new Error('Failed to fetch files')
       }
@@ -65,6 +66,7 @@ function Dashboard() {
   }
 
   const formatDate = (dateString) => {
+    if (!dateString) return '-'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -72,6 +74,22 @@ function Dashboard() {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const formatAddress = (addr) => {
+    if (!addr) return '-'
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  }
+
+  const getFileRole = (file) => {
+    const normalizedAccount = account?.toLowerCase()
+    const isSender = file.ownerAddress?.toLowerCase() === normalizedAccount
+    const isReceiver = file.receiverAddress?.toLowerCase() === normalizedAccount
+    
+    if (isSender && isReceiver) return 'You (Sender & Receiver)'
+    if (isSender) return 'You (Sender)'
+    if (isReceiver) return 'You (Receiver)'
+    return 'Unknown'
   }
 
   if (!isConnected) {
@@ -117,6 +135,9 @@ function Dashboard() {
                   Filename
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Your Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Label
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -132,10 +153,23 @@ function Dashboard() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {files.map((file) => (
-                <tr key={file._id} className="hover:bg-gray-50">
+                <tr key={file._id || file.fileId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {file.originalFilename || file.fileId}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm">
+                      <div className="font-medium text-gray-900">{getFileRole(file)}</div>
+                      {file.receiverAddress && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {file.ownerAddress?.toLowerCase() === account?.toLowerCase() 
+                            ? `To: ${formatAddress(file.receiverAddress)}`
+                            : `From: ${formatAddress(file.ownerAddress)}`
+                          }
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -153,7 +187,7 @@ function Dashboard() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(file.createdAt)}
+                    {formatDate(file.uploadedAt || file.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <Button

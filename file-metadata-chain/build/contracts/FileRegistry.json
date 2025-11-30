@@ -93,8 +93,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"fileId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"version\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"fileHash\",\"type\":\"string\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"FileStored\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"fileId\",\"type\":\"string\"}],\"name\":\"getFile\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"version\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"fileHash\",\"type\":\"string\"},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"fileId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"version\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"fileHash\",\"type\":\"string\"}],\"name\":\"storeFile\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/FileRegistry.sol\":\"FileRegistry\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/FileRegistry.sol\":{\"keccak256\":\"0x7a95101190975227e5134cb52c46faccb1545afc20430a143a910993288fa380\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8d63decc177e2e2c586950b5058216859bc9d2bf25755a7e77ecb509d0f68318\",\"dweb:/ipfs/QmaspXa2DJ65Z2vyH8d67jcZKkfvtTVMFRpsNAu2XZ2r76\"]}},\"version\":1}",
@@ -8409,8 +8408,7 @@
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-11-30T10:19:56.693Z",
-  "networkType": "ethereum",
+  "updatedAt": "2025-11-30T17:23:33.175Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

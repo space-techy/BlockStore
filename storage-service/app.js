@@ -57,13 +57,16 @@ app.post('/store', upload.single('file'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' })
     }
-    const { attention, confidence, label, accessRights, ownerAddress, senderAddress, isPublic } = req.body
+    const { attention, confidence, label, accessRights, ownerAddress, senderAddress, receiverAddress, isPublic } = req.body
     
     // Use senderAddress as ownerAddress if provided, otherwise use ownerAddress
     const fileOwner = senderAddress || ownerAddress
     if (!fileOwner) {
       return res.status(400).json({ error: 'ownerAddress or senderAddress is required' })
     }
+    
+    // Normalize receiver address (optional - can be null if not sending to someone specific)
+    const normalizedReceiverAddress = receiverAddress ? receiverAddress.trim().toLowerCase() : null
 
     const { iv, encryptedData } = encryptBuffer(req.file.buffer)
     // Create unique fileId with timestamp to avoid conflicts
@@ -82,6 +85,7 @@ app.post('/store', upload.single('file'), async (req, res) => {
         confidence: confidence || 'Usually',
         label: label || '',
         ownerAddress: fileOwner.toLowerCase(),
+        receiverAddress: normalizedReceiverAddress,
         isPublic: isPublic === 'true' || isPublic === true,
         originalFilename: req.file.originalname
       })
@@ -107,6 +111,7 @@ app.post('/store', upload.single('file'), async (req, res) => {
         confidence: confidence || 'Usually',
         label: label || '',
         ownerAddress: fileOwner.toLowerCase(),
+        receiverAddress: normalizedReceiverAddress,
         isPublic: isPublic === 'true' || isPublic === true,
         originalFilename: req.file.originalname
       })
@@ -126,7 +131,30 @@ app.post('/store', upload.single('file'), async (req, res) => {
   }
 })
 
-// Get all files by owner address
+// Get all files where user is sender OR receiver (from ledger)
+app.get('/files/user/:address', async (req, res) => {
+  try {
+    const { address } = req.params
+    const { data: files } = await axios.get(`${METADATA_SERVICE_URL}/user/${address}`)
+    return res.status(200).json(files)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Get all public files from ledger (no address needed)
+app.get('/files/public/all', async (req, res) => {
+  try {
+    const { data: files } = await axios.get(`${METADATA_SERVICE_URL}/public/all`)
+    return res.status(200).json(files)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Legacy endpoints - kept for compatibility
 app.get('/files/owner/:address', async (req, res) => {
   try {
     const { address } = req.params
@@ -138,7 +166,6 @@ app.get('/files/owner/:address', async (req, res) => {
   }
 })
 
-// Get public files by address
 app.get('/files/public/:address', async (req, res) => {
   try {
     const { address } = req.params
@@ -159,11 +186,15 @@ app.get('/retrieve/:fileId', async (req, res) => {
       return res.status(404).json({ error: 'Metadata not found' })
     }
 
-    const { dataLocation, attention, confidence, ownerAddress, isPublic } = metadata
+    const { dataLocation, attention, confidence, ownerAddress, receiverAddress, isPublic } = metadata
     
-    // Check permissions: owner can always access, public files can be accessed by anyone
-    const isOwner = requesterAddress && requesterAddress === ownerAddress?.toLowerCase()
-    if (!isPublic && !isOwner) {
+    // Check permissions: owner can always access, receiver can access, public files can be accessed by anyone
+    const normalizedOwnerAddress = ownerAddress?.toLowerCase()
+    const normalizedReceiverAddress = receiverAddress?.toLowerCase()
+    const isOwner = requesterAddress && requesterAddress === normalizedOwnerAddress
+    const isReceiver = requesterAddress && normalizedReceiverAddress && requesterAddress === normalizedReceiverAddress
+    
+    if (!isPublic && !isOwner && !isReceiver) {
       return res.status(403).json({ error: 'Access denied. File is private.' })
     }
 

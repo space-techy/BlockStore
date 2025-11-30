@@ -10,6 +10,7 @@ function Upload() {
   const navigate = useNavigate()
   const [file, setFile] = useState(null)
   const [senderAddress, setSenderAddress] = useState('')
+  const [receiverAddress, setReceiverAddress] = useState('')
   const [isPublic, setIsPublic] = useState(false)
   const [label, setLabel] = useState('')
   const [loading, setLoading] = useState(false)
@@ -43,6 +44,9 @@ function Upload() {
       formData.append('file', file)
       formData.append('senderAddress', senderAddress.trim())
       formData.append('isPublic', isPublic.toString())
+      if (receiverAddress.trim()) {
+        formData.append('receiverAddress', receiverAddress.trim())
+      }
       if (label.trim()) {
         formData.append('label', label.trim())
       }
@@ -62,6 +66,7 @@ function Upload() {
       setFile(null)
       setLabel('')
       setSenderAddress('')
+      setReceiverAddress('')
       setIsPublic(false)
       
       // Reset file input
@@ -122,7 +127,23 @@ function Upload() {
             required
           />
           <p className="mt-1 text-sm text-gray-500">
-            This address will be used as the file owner address
+            This address will be used as the file owner address (sender)
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="receiverAddress">Receiver Address (Optional)</Label>
+          <Input
+            id="receiverAddress"
+            type="text"
+            value={receiverAddress}
+            onChange={(e) => setReceiverAddress(e.target.value)}
+            placeholder="0x... (leave empty if not sending to anyone specific)"
+            className="mt-1 font-mono"
+            disabled={loading}
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            Enter a wallet address if you want to send this file to someone. The receiver will be able to see this file in their dashboard.
           </p>
         </div>
 
