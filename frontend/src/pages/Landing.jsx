@@ -76,7 +76,7 @@ function Landing() {
   return (
     <>
     <div className="p-6 space-y-6 flex flex-col items-center">
-      <h1 className="text-2xl font-bold">Blockchain-Based Decentralized Storage Design for Data Confidence Over Cloud-Native Edge Infrastructure</h1>
+      <h1 className="text-2xl font-bold">BlockStore - Blockchain File Sharing</h1>
 
       <form onSubmit={handleUpload} className="space-y-4 max-w-md">
         <div>
