@@ -36,6 +36,12 @@ function Navbar() {
                 <Link to="/public-files" className="text-gray-700 hover:text-indigo-600 transition">
                   Public Files
                 </Link>
+                <Link to="/verify" className="text-gray-700 hover:text-indigo-600 transition">
+                  Verify
+                </Link>
+                <Link to="/admin" className="text-gray-700 hover:text-indigo-600 transition">
+                  Admin
+                </Link>
               </>
             )}
           </div>

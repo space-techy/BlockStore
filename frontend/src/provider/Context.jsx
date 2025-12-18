@@ -103,7 +103,7 @@ function ContextProvider({ children }) {
     disconnectWallet,
     checkMetaMask
   }
-
+  
   return (
     <Context.Provider value={value}>
       {children}
@@ -114,9 +114,9 @@ function ContextProvider({ children }) {
 export default ContextProvider
 
 export const useGlobalContext = () => {
-  const context = useContext(Context)
-  if (!context) {
-    throw new Error('useGlobalContext must be used within a Context.Provider')
-  }
-  return context
+    const context = useContext(Context)
+    if (!context) {
+        throw new Error('useGlobalContext must be used within a Context.Provider')
+    }
+    return context
 }

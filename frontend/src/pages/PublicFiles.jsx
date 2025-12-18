@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { useGlobalContext } from '@/provider/Context'
 import { Button } from '@/components/ui/button'
 
 function PublicFiles() {
+  const { account } = useGlobalContext()
   const [files, setFiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -33,10 +35,19 @@ function PublicFiles() {
 
   const handleDownload = async (fileId, originalFilename) => {
     try {
-      const response = await fetch(`http://localhost:3000/retrieve/${fileId}`)
+      // Pass address for access control - even for public files, we want to log who accessed
+      const address = account || 'anonymous'
+      const response = await fetch(`http://localhost:3000/retrieve/${fileId}?address=${address}`)
       if (!response.ok) {
         const errorData = await response.json()
-        alert(errorData.error || 'Failed to download file')
+        
+        // Show detailed error message
+        let errorMsg = errorData.error || 'Failed to download file'
+        if (errorData.requiredRoles && errorData.requiredRoles.length > 0) {
+          errorMsg += `\n\nRequired roles: ${errorData.requiredRoles.join(', ')}`
+        }
+        
+        alert(errorMsg)
         return
       }
 

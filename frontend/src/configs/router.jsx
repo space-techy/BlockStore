@@ -3,30 +3,40 @@ import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Upload from "../pages/Upload";
 import PublicFiles from "../pages/PublicFiles";
+import Admin from "../pages/Admin";
+import Verify from "../pages/Verify";
 import Layout from "../pages/Layout";
 
 const router = createBrowserRouter([
-  {
+    {
     path: '/',
     element: <Layout />,
     children: [
-      {
+            {
         path: '/',
         element: <Login />
-      },
-      {
+    },
+    {
         path: '/dashboard',
         element: <Dashboard />
-      },
-      {
+    },
+    {
         path: '/upload',
         element: <Upload />
       },
       {
         path: '/public-files',
         element: <PublicFiles />
+    },
+    {
+        path: '/admin',
+        element: <Admin />
       },
       {
+        path: '/verify',
+        element: <Verify />
+    },
+    {
         path: '*',
         element: (
           <div className="container mx-auto px-4 py-8 text-center">
@@ -36,7 +46,7 @@ const router = createBrowserRouter([
         )
       }
     ]
-  }
+    }
 ])
 
 export default router;

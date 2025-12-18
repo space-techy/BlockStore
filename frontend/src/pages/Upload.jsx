@@ -12,7 +12,12 @@ function Upload() {
   const [senderAddress, setSenderAddress] = useState('')
   const [receiverAddress, setReceiverAddress] = useState('')
   const [isPublic, setIsPublic] = useState(false)
+  const [accessType, setAccessType] = useState('private')
+  const [roles, setRoles] = useState([])
+  const [selectedRoles, setSelectedRoles] = useState([])
   const [label, setLabel] = useState('')
+  const [documentType, setDocumentType] = useState('')
+  const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null)
@@ -20,8 +25,32 @@ function Upload() {
   React.useEffect(() => {
     if (!isConnected) {
       navigate('/')
+    } else {
+      fetchRoles()
     }
   }, [isConnected, navigate])
+
+  const fetchRoles = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/roles')
+      if (response.ok) {
+        const data = await response.json()
+        setRoles(data)
+      }
+    } catch (err) {
+      console.error('Error fetching roles:', err)
+    }
+  }
+
+  const toggleRole = (roleName) => {
+    setSelectedRoles(prev => {
+      if (prev.includes(roleName)) {
+        return prev.filter(r => r !== roleName)
+      } else {
+        return [...prev, roleName]
+      }
+    })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -43,12 +72,23 @@ function Upload() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('senderAddress', senderAddress.trim())
-      formData.append('isPublic', isPublic.toString())
+      formData.append('isPublic', (accessType === 'public').toString())
+      formData.append('accessType', accessType)
+      
       if (receiverAddress.trim()) {
         formData.append('receiverAddress', receiverAddress.trim())
       }
       if (label.trim()) {
         formData.append('label', label.trim())
+      }
+      if (documentType.trim()) {
+        formData.append('documentType', documentType.trim())
+      }
+      if (description.trim()) {
+        formData.append('description', description.trim())
+      }
+      if (accessType === 'role-based' && selectedRoles.length > 0) {
+        formData.append('allowedRoles', JSON.stringify(selectedRoles))
       }
 
       const response = await fetch('http://localhost:3000/store', {
@@ -68,6 +108,10 @@ function Upload() {
       setSenderAddress('')
       setReceiverAddress('')
       setIsPublic(false)
+      setAccessType('private')
+      setSelectedRoles([])
+      setDocumentType('')
+      setDescription('')
       
       // Reset file input
       const fileInput = document.getElementById('file')
@@ -160,19 +204,111 @@ function Upload() {
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <input
-            id="isPublic"
-            type="checkbox"
-            checked={isPublic}
-            onChange={(e) => setIsPublic(e.target.checked)}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+        <div>
+          <Label htmlFor="documentType">Document Type (Optional)</Label>
+          <Input
+            id="documentType"
+            type="text"
+            value={documentType}
+            onChange={(e) => setDocumentType(e.target.value)}
+            placeholder="e.g., Tender, Contract, Transaction, Invoice"
+            className="mt-1"
             disabled={loading}
           />
-          <Label htmlFor="isPublic" className="cursor-pointer">
-            Make this file public (anyone with your address can access it)
-          </Label>
         </div>
+
+        <div>
+          <Label htmlFor="description">Description (Optional)</Label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Brief description of the document..."
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
+            rows="3"
+            disabled={loading}
+          />
+        </div>
+
+        <div>
+          <Label>Access Control</Label>
+          <div className="mt-2 space-y-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="accessPublic"
+                name="accessType"
+                value="public"
+                checked={accessType === 'public'}
+                onChange={(e) => setAccessType(e.target.value)}
+                className="h-4 w-4"
+                disabled={loading}
+              />
+              <Label htmlFor="accessPublic" className="cursor-pointer">
+                Public - Anyone can access
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="accessPrivate"
+                name="accessType"
+                value="private"
+                checked={accessType === 'private'}
+                onChange={(e) => setAccessType(e.target.value)}
+                className="h-4 w-4"
+                disabled={loading}
+              />
+              <Label htmlFor="accessPrivate" className="cursor-pointer">
+                Private - Only you and receiver can access
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input
+                type="radio"
+                id="accessRole"
+                name="accessType"
+                value="role-based"
+                checked={accessType === 'role-based'}
+                onChange={(e) => setAccessType(e.target.value)}
+                className="h-4 w-4"
+                disabled={loading}
+              />
+              <Label htmlFor="accessRole" className="cursor-pointer">
+                Role-Based - Only specific roles can access
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        {accessType === 'role-based' && (
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <Label className="mb-2 block">Select Allowed Roles:</Label>
+            {roles.length === 0 ? (
+              <p className="text-sm text-gray-600">No roles available. Contact an authority to create roles.</p>
+            ) : (
+              <div className="space-y-2">
+                {roles.map((role) => (
+                  <div key={role._id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`role-${role.roleName}`}
+                      checked={selectedRoles.includes(role.roleName)}
+                      onChange={() => toggleRole(role.roleName)}
+                      className="h-4 w-4"
+                      disabled={loading}
+                    />
+                    <Label htmlFor={`role-${role.roleName}`} className="cursor-pointer text-sm">
+                      {role.roleName} - {role.description}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
